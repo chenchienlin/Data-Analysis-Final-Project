@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1529176850581.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "3924765C",
+    "lastKnownWriteTime" : 7309458061970601829,
+    "last_content_update" : 1529176850581,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "1FE80D27",
+        "caption" : "New_Taipei_City_School",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=New_Taipei_City_School&cache_key=1FE80D27",
+        "displayedObservations" : 160,
+        "environment" : "",
+        "object" : "New_Taipei_City_School",
+        "preview" : 0,
+        "totalObservations" : 160,
+        "variables" : 6
+    },
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

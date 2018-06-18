@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1529174718119.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "877100B8",
+    "lastKnownWriteTime" : 7308604914264011873,
+    "last_content_update" : 1529174718119,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "BE025BF4",
+        "caption" : "New_Taipei_City_Crim_2_2",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=New_Taipei_City_Crim_2_2&cache_key=BE025BF4",
+        "displayedObservations" : "141",
+        "environment" : "",
+        "object" : "New_Taipei_City_Crim_2_2",
+        "preview" : "0",
+        "totalObservations" : "141",
+        "variables" : "3"
+    },
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

@@ -1,0 +1,284 @@
+---
+title: "資料清洗與處理"
+output: github_document
+---
+
+### 問題
+
+#### 爬DCard長庚大學版 (不用使用瀑布式爬蟲，爬第一頁就好)，取出文章標題、作者以及按愛心的人數，並做成一個資料框。請問按愛心的人數的欄位型態是? 請轉換為字串後寫回資料框中。<https://www.dcard.tw/f/cgu>
+
+**提示: `rvest`套件爬蟲、`data.frame`製作資料框**
+
+### 解答
+
+```{r}
+library(rvest)
+#爬長庚DCARD
+DCardCGU<-"https://www.dcard.tw/f/cgu"
+post_title <- 
+  read_html(DCardCGU) %>% 
+  html_nodes(".PostEntry_unread_2U217") %>% 
+  html_text()
+post_author<- 
+  read_html(DCardCGU) %>% 
+  html_nodes(".PostAuthor_root_3vAJf") %>% 
+  html_text()
+post_like<- 
+  read_html(DCardCGU) %>% 
+  html_nodes(".Like_counter_1enlP") %>% 
+  html_text()
+#將爬下來的資料建成資料框
+DCardCGU_posts <- 
+  data.frame(title = post_title,
+             author=post_author, 
+             likeN=post_like,stringsAsFactors = F)
+#檢查資料型態
+class(DCardCGU_posts$likeN)
+```
+
+```{r}
+#將DCardCGU_posts的likeN欄位資料的資料型態轉成數值型後指定給DCardCGU_posts的likeN欄位
+DCardCGU_posts$likeN<-as.numeric(DCardCGU_posts$likeN)
+DCardCGU_posts
+```
+
+</hr>
+
+### 問題
+
+#### 呈上題，選出作者欄位中，包含"電子"的資料位置
+
+**提示: ```grep()```、```$```**， `grep("要檢索的字串",欄位或向量)`
+
+### 解答
+
+```{r}
+grep("電子",DCardCGU_posts$author)
+```
+
+### 問題
+
+#### 請試著爬PTT科技工作版https://www.ptt.cc/bbs/Tech_Job/index.html ，一次爬十頁的文章標題後，請試著找出標題中包含”面試”字串的位置，並試著將包含”面試”字串的標題單獨選出來
+
+**提示: 上禮拜的詳解、標題存成向量就好、`grep()`或是`grepl()`、`[ ]`**
+
+### 說明
+
+`grep()` 找出符合字串的資料位置 `grepl()` 判斷資料是否符合字串
+
+### 解答
+
+```{r}
+PPT_Job_title_total<-NULL
+for (i in c(3020:3011)){
+    PPT_Job_title<-
+        read_html(paste0("https://www.ptt.cc/bbs/Tech_Job/index",i,".html"))%>%
+        html_nodes(".title a")%>%
+        html_text()
+    PPT_Job_title_total<-c(PPT_Job_title_total,PPT_Job_title)
+}
+#找「面試」字串位置
+grep("面試",PPT_Job_title_total)
+```
+```{r}
+#單獨選「面試」字串的標題
+##用grep()
+PPT_Job_title_total[grep("面試",PPT_Job_title_total)]
+```
+```{r}
+##用grepl()
+PPT_Job_title_total[grepl("面試",PPT_Job_title_total)]
+```
+
+</hr>
+### 問題
+
+#### 呈上題，請試著將”海邊”字串取代為”鴻海”、”滷肉”取代為”聯詠”，取代完畢後，請問”鴻海”出現在幾個標題中?
+
+**提示: 上禮拜的詳解、標題存成向量就好、`gsub()`、`grep()`或是`grepl()`**
+
+### 說明
+
+1.  使用`gsub()`進行字串取代，`gsub("原始字串","取代原始字串的新字串",向量或資料欄位)`
+2.  取代後的字串或資料需存回原本的資料位置
+3.  算個數
+
+### 解答
+
+#### 解法一
+
+1.  使用`grep()`，可取出符合字串的資料位置
+2.  使用`length()`找出選取的資料長度
+
+```{r}
+#解法一[使用grep()]
+PPT_Job_title_total<-gsub("海邊","鴻海",PPT_Job_title_total)
+PPT_Job_title_total<-gsub("滷肉","聯詠",PPT_Job_title_total)
+length(grep("鴻海",PPT_Job_title_total))
+```
+
+#### 解法二
+
+1.  使用`grepl()`，可判斷資料是否符合字串，傳回值為`TRUE/FALSE`
+2.  由於`TRUE=1、FALSE=0`，可使用`sum()`找出選取的資料長度
+
+```{r}
+#解法二[使用grepl()]
+sum(grepl("鴻海",PPT_Job_title_total))
+```
+
+</hr>
+
+
+### 問題
+
+#### 在桃園市政府資料開放平台中，找到路外停車資訊資料(每分鐘更新) <http://data.tycg.gov.tw/api/v1/rest/datastore/0daad6e6-0632-44f5-bd25-5e1de1e9146f?format=json> ，試著將資料使用API的方式讀入R，並找到存放資料的位置，請問，在資料中，各地區(``` areaname```)有幾個停車場?
+
+**提示: `fromJSON()`、`$`、`grep()`**
+
+### 解答
+
+```{r}
+library(jsonlite)
+library(RCurl)
+```
+
+```{r}
+ParkingData<-
+  fromJSON("http://data.tycg.gov.tw/api/v1/rest/datastore/0daad6e6-0632-44f5-bd25-5e1de1e9146f?format=json")
+str(ParkingData) 
+```
+
+```{r}
+table(ParkingData$result$record$areaName)
+```
+
+</hr>
+
+### 問題
+
+#### 在桃園市政府資料開放平台中，找到路外停車資訊資料http://data.tycg.gov.tw/api/v1/rest/datastore/0daad6e6-0632-44f5-bd25-5e1de1e9146f?format=json ，請試著取出計費方式說明(payguide)的第6-7個字元，並存在新的欄位Price中。備註: 沒按照格式打的計費方式，取出的價錢會很怪，有興趣的同學可以試著想該怎麼處理所有的價錢資料。
+
+**提示: fromJSON()、$Price、substr()**
+
+### 解答
+
+```{r}
+#library(jsonlite)
+#library(RCurl)
+ParkingData<-
+  fromJSON("http://data.tycg.gov.tw/api/v1/rest/datastore/0daad6e6-0632-44f5-bd25-5e1de1e9146f?format=json")
+ParkingData$result$record$Price<-substr(ParkingData$result$record$payGuide,6,7)
+str(ParkingData)
+```
+
+</hr>
+
+
+### 問題
+
+#### 請試著用Rfacebook套件，取出長庚大學 @cgu.edu.tw 粉絲專頁上去年至今 (2017/01/01到今天) 的所有貼文，並篩選出貼文文字中有出現”名”的貼文相關資料。
+
+**提示: Rfacebook、getPage() 、$ 、grepl、子集**
+
+### 解答
+
+#### 取得Facebook貼文的方式參見[課堂講義](https://github.com/yulienshih/BigDataCGUIM-1/blob/master/106/07_IO.md)
+
+```{r}
+library(Rfacebook)
+#時間區間設定
+
+lastDate<-Sys.Date()
+DateVector<-seq(as.Date("2017-01-01"),lastDate,by="20 days") 
+#若今天日期未在DateVector中，將今日日期加入該向量中
+DateVector<-c(DateVector,lastDate)
+
+DateVectorStr<-as.character(DateVector)
+DateVectorStr
+
+#取得Facebook粉絲專頁貼文
+totalPage<-NULL
+token<-'EAACEdEose0cBAKCVIbSZCRrFx1J40t3n0RBDuKNBCGOF1tLmTZAGtqXpZA3DcJSc1ZAHGgFIsoIKjVcstIPGmiSEEsFRrnGMkCS7TCEe2v1tiA2AoqqYuE4by4VrUEhSRpW5CDQGKktYYFrQ4KZAaK7c0Q15lnxZAbW1bvxGuz87k6XXguOqsodfYVrcyxtu5pAzFlojVcLgZDZD'
+for(i in 1:(length(DateVectorStr)-1)){
+ tempPage<-getPage("cgu.edu.tw", token,
+                   since = DateVectorStr[i],
+                   until = DateVectorStr[i+1])
+ totalPage<-rbind(totalPage,tempPage)
+}
+```
+
+** 篩選貼文文字以```totalPage```進行子集```[]```篩選，```[]```逗號前篩選```row```、逗號後篩選```column``` **
+
+```{r}
+#篩選貼文文字中有"名"的貼文
+totalPage[grepl("名",totalPage$message),]
+```
+
+</hr>
+
+### 問題
+
+####呈上題，篩選出按讚數大於100的貼文相關資料，請問全部貼文數是多少?按讚數大於100的貼文數是多少?貼文按讚數大於100的比例是?
+
+** Rfacebook、getPage()、$、子集、nrow() **
+
+### 解答
+
+** ```nrow```篩選二維資料 **
+
+```{r}
+nrow(totalPage)
+
+nrow(totalPage[totalPage$likes_count>100,])
+
+nrow(totalPage[totalPage$likes_count>100,])/nrow(totalPage)
+```
+
+</hr>
+
+### 問題
+
+####在桃園市政府資料開放平台中，找到路外停車資訊資料(每分鐘更新) http://data.tycg.gov.tw/api/v1/rest/datastore/0daad6e6-0632-44f5-bd25-5e1de1e9146f?format=json ，試著將資料使用API的方式讀入R，並找到存放資料的位置，請將資料依照總停車位(totalSpace)由多至少排序。
+
+** 提示: fromJSON()、$、order() 、子集、as.numeric() **
+
+### 解答
+
+** ```nrow```看資料列數 **
+
+```{r error = F, eval=FALSE, warning=FALSE, include=FALSE}
+library(jsonlite)
+library(RCurl)
+APIData<-
+  fromJSON("http://data.tycg.gov.tw/api/v1/rest/datastore/0daad6e6-0632-44f5-bd25-5e1de1e9146f?format=json")
+str(APIData)
+records_df<-APIData$result$records
+records_df[order(records_df$totalSpace,decreasing=T),]
+```
+
+</hr>
+
+### 問題
+
+####下載以下兩個檔案，並載入R，106各村里教育程度資料http://data.moi.gov.tw/MoiOD/System/DownloadFile.aspx?DATA=7DD5CC42-4EFA-4AFD-9004-AF576CB2B33710612各村（里）戶籍人口統計月報表http://data.moi.gov.tw/MoiOD/System/DownloadFie.aspx?DATA=46D0FA91-0159-47B9-BA49-D158F5FD4443依照區域別與村里名稱，將兩張表格結合，只留下有對應到的資料，請將資料依照106年12月的出生率(出生數/總人口數)由大到小排序。
+
+** 提示: Inner_join()、order() 、新增出生率欄位 ** 
+
+### 解答
+
+
+
+```{r}
+library(readr)
+library(dplyr)
+education_Level<-read_csv("http://data.moi.gov.tw/MoiOD/System/DownloadFile.aspx?DATA=7DD5CC42-4EFA-4AFD-9004-AF576CB2B337",skip = 1)
+
+demographic_Data<-read_csv("http://data.moi.gov.tw/MoiOD/System/DownloadFile.aspx?DATA=46D0FA91-0159-47B9-BA49-D158F5FD4443",skip = 1)
+#View(opendata10612M010)
+
+combined_data<-inner_join(education_Level,demographic_Data,by=c("區域別","村里名稱" = "村里"))
+
+combined_data[order(combined_data$出生數/combined_data$總計, decreasing = T),]
+```
+
